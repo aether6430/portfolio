@@ -1,6 +1,10 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*\\.(?:js|css|png|jpg|jpeg|gif|svg|webp|mp4|webm|woff|woff2|ttf|otf|eot|ico|xml|txt|pdf|zip|rar|json|webmanifest))$", "continue": true },
+    { "src": "/blog/([^/?]+)", "dest": "/api/ssrOG" },
+    { "src": "/blog", "dest": "/api/ssrOG" },
+    { "src": "/", "dest": "/api/ssrOG" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
