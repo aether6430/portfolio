@@ -7,7 +7,8 @@ export const config = {
 
 export default function handler(request: VercelRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const url = request.url || 'http://localhost'
+    const { searchParams } = new URL(url)
     const title = searchParams.get('title')?.slice(0, 100) || 'Blog Post'
     const tags = searchParams.get('tags')?.split(',').filter(Boolean) || []
 
