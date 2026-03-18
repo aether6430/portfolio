@@ -321,7 +321,7 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
         onClick={onClose}
       />
       <motion.div
-        className="relative w-full max-w-6xl max-h-[88vh] overflow-hidden rounded-lg border border-app-modal-border bg-app-bg shadow-2xl project-modal-surface project-modal-border"
+        className="relative w-full max-w-6xl max-h-[88vh] overflow-hidden rounded-lg bg-app-bg shadow-2xl project-modal-surface"
         initial={{ y: 20, scale: 0.985, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 16, scale: 0.985, opacity: 0 }}
@@ -338,9 +338,6 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
                     className="absolute inset-0 h-full w-full border-0"
                     loading="lazy"
                   />
-                  <div className="absolute left-5 top-5 rounded-full border border-app-accent-soft/30 bg-app-surface/90 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-app-accent-soft shadow-none">
-                    Live preview
-                  </div>
                 </div>
                 <a
                   href={project.liveUrl}
@@ -355,9 +352,6 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
               <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-app-surface-2 project-modal-item">
                 <img src={project.image} alt={project.title} className="absolute inset-0 h-full w-full object-cover object-center" />
                 <div className="absolute inset-0 bg-gradient-to-t from-app-bg/55 via-app-bg/10 to-transparent" />
-                <div className="absolute left-5 top-5 rounded-full border border-app-accent-soft/30 bg-app-surface/90 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-app-accent-soft shadow-none">
-                  Project image
-                </div>
               </div>
             )}
           </div>

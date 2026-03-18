@@ -2,26 +2,29 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-brand: rgb(var(--app-accent-rgb) / <alpha-value>);
-  --color-app-bg: rgb(var(--app-bg-rgb) / <alpha-value>);
-  --color-app-surface: rgb(var(--app-surface-rgb) / <alpha-value>);
-  --color-app-surface-2: rgb(var(--app-surface-2-rgb) / <alpha-value>);
-  --color-app-surface-hover: rgb(var(--app-surface-hover-rgb) / <alpha-value>);
-  --color-app-text: rgb(var(--app-text-rgb) / <alpha-value>);
-  --color-app-text-muted: rgb(var(--app-text-muted-rgb) / <alpha-value>);
-  --color-app-text-subtle: rgb(var(--app-text-subtle-rgb) / <alpha-value>);
-  --color-app-heading: rgb(var(--app-heading-rgb) / <alpha-value>);
-  --color-app-border: rgb(var(--app-border-rgb) / <alpha-value>);
-  --color-app-border-strong: rgb(var(--app-border-strong-rgb) / <alpha-value>);
-  --color-app-inverse: rgb(var(--app-inverse-rgb) / <alpha-value>);
-  --color-app-overlay: rgb(var(--app-overlay-rgb) / <alpha-value>);
-  --color-app-accent: rgb(var(--app-accent-rgb) / <alpha-value>);
-  --color-app-accent-soft: rgb(var(--app-accent-soft-rgb) / <alpha-value>);
-  --color-app-modal-backdrop: rgb(var(--app-modal-backdrop-rgb) / var(--app-modal-backdrop-alpha));
-  --color-app-modal-surface: rgb(var(--app-modal-surface-rgb) / <alpha-value>);
-  --color-app-modal-surface-strong: rgb(var(--app-modal-surface-strong-rgb) / <alpha-value>);
-  --color-app-modal-border: rgb(var(--app-modal-border-rgb) / <alpha-value>);
-  --color-app-modal-item: rgb(var(--app-modal-item-rgb) / <alpha-value>);
+  --color-brand: #abc4ff;
+  --color-app-bg: #ffffff;
+  --color-app-surface: #ffffff;
+  --color-app-surface-2: #f4f4f5;
+  --color-app-surface-hover: #fafafa;
+  --color-app-text: #52525c;
+  --color-app-text-muted: #71717a;
+  --color-app-text-subtle: #a1a1aa;
+  --color-app-heading: #111827;
+  --color-app-border: #e4e4e7;
+  --color-app-border-strong: #d4d4d8;
+  --color-app-inverse: #ffffff;
+  --color-app-overlay: #09090b;
+  --color-app-accent: #abc4ff;
+  --color-app-accent-soft: #abc4ff;
+  --color-app-modal-backdrop: #09090b66;
+  --color-app-modal-surface: #ffffff;
+  --color-app-modal-surface-strong: #f4f4f5;
+  --color-app-modal-border: #c4d2ff;
+  --color-app-modal-item: #f4f4f5;
+  --color-app-shadow: #000000;
+  --color-app-code-bg: #ffffff;
+  --color-app-code-dark-bg: #22272e;
 
   --font-sans: "Arial", "Helvetica", sans-serif;
   --font-mono: "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
@@ -29,68 +32,38 @@
 }
 
 @layer base {
-  :root {
-    --app-bg-rgb: 255 255 255;
-    --app-surface-rgb: 255 255 255;
-    --app-surface-2-rgb: 244 244 245;
-    --app-surface-hover-rgb: 250 250 250;
-    --app-text-rgb: 82 82 92;
-    --app-text-muted-rgb: 113 113 122;
-    --app-text-subtle-rgb: 161 161 170;
-    --app-heading-rgb: 17 24 39;
-    --app-border-rgb: 228 228 231;
-    --app-border-strong-rgb: 212 212 216;
-    --app-inverse-rgb: 255 255 255;
-    --app-overlay-rgb: 9 9 11;
-    --app-accent-rgb: 171 196 255;
-    --app-accent-soft-rgb: 171 196 255;
-    --app-shadow-rgb: 0 0 0;
-    --app-modal-backdrop-rgb: 255 255 255;
-    --app-modal-backdrop-alpha: 0.92;
-    --app-modal-surface-rgb: 255 255 255;
-    --app-modal-surface-strong-rgb: 244 244 245;
-    --app-modal-border-rgb: 196 210 255;
-    --app-modal-item-rgb: 244 244 245;
-    --app-code-bg: #ffffff;
-    --app-code-dark-bg: #22272e;
-    --app-mask-edge-rgb: 0 0 0;
-  }
-
-  .dark {
-    --app-bg-rgb: 9 9 11;
-    --app-surface-rgb: 9 9 11;
-    --app-surface-2-rgb: 24 24 27;
-    --app-surface-hover-rgb: 24 24 27;
-    --app-text-rgb: 161 161 170;
-    --app-text-muted-rgb: 161 161 170;
-    --app-text-subtle-rgb: 113 113 122;
-    --app-heading-rgb: 250 250 250;
-    --app-border-rgb: 39 39 42;
-    --app-border-strong-rgb: 63 63 70;
-    --app-inverse-rgb: 255 255 255;
-    --app-overlay-rgb: 9 9 11;
-    --app-accent-rgb: 171 196 255;
-    --app-accent-soft-rgb: 171 196 255;
-    --app-shadow-rgb: 9 9 11;
-    --app-modal-backdrop-rgb: 5 6 7;
-    --app-modal-backdrop-alpha: 0.94;
-    --app-modal-surface-rgb: 9 9 11;
-    --app-modal-surface-strong-rgb: 24 24 27;
-    --app-modal-border-rgb: 78 93 140;
-    --app-modal-item-rgb: 24 24 27;
-    --app-code-bg: #22272e;
-    --app-code-dark-bg: #22272e;
-    --app-mask-edge-rgb: 0 0 0;
-  }
-
   body {
-    background-color: rgb(var(--app-bg-rgb));
-    color: rgb(var(--app-text-rgb));
+    background-color: var(--color-app-bg);
+    color: var(--color-app-text);
     font-family: var(--font-mono);
-    /* Based on the image, the font looks completely monospace */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+  }
+
+  .dark {
+    --color-app-bg: #09090b;
+    --color-app-surface: #09090b;
+    --color-app-surface-2: #18181b;
+    --color-app-surface-hover: #18181b;
+    --color-app-text: #a1a1aa;
+    --color-app-text-muted: #a1a1aa;
+    --color-app-text-subtle: #71717a;
+    --color-app-heading: #fafafa;
+    --color-app-border: #27272a;
+    --color-app-border-strong: #3f3f46;
+    --color-app-inverse: #ffffff;
+    --color-app-overlay: #09090b;
+    --color-app-accent: #abc4ff;
+    --color-app-accent-soft: #abc4ff;
+    --color-app-shadow: #09090b;
+    --color-app-modal-backdrop: #050607f0;
+    --color-app-modal-surface: #09090b;
+    --color-app-modal-surface-strong: #18181b;
+    --color-app-modal-border: #4e5d8c;
+    --color-app-modal-item: #18181b;
+    --color-app-code-bg: #22272e;
+    --color-app-code-dark-bg: #22272e;
   }
 
   html.cursor-none,
@@ -100,7 +73,6 @@
     cursor: none !important;
   }
 
-  /* Global Link microinteractions */
   a,
   button {
     cursor: pointer;
@@ -112,13 +84,13 @@
   h4,
   h5,
   h6 {
-    color: rgb(var(--app-heading-rgb));
+    color: var(--color-app-heading);
   }
 }
 
 @layer utilities {
   .dot-bg {
-    background-image: radial-gradient(rgb(var(--app-border-rgb)) 1px, transparent 0);
+    background-image: radial-gradient(var(--color-app-border) 1px, transparent 0);
     background-size: 16px 16px;
     background-position: -8px -8px;
   }
@@ -131,10 +103,10 @@
     opacity: 0;
     mix-blend-mode: soft-light;
     background-image:
-      radial-gradient(circle at 20% 20%, rgb(var(--app-inverse-rgb) / 0.16) 0 1px, transparent 1px),
-      radial-gradient(circle at 80% 30%, rgb(var(--app-inverse-rgb) / 0.14) 0 1px, transparent 1px),
-      radial-gradient(circle at 40% 70%, rgb(var(--app-inverse-rgb) / 0.12) 0 1px, transparent 1px),
-      radial-gradient(circle at 70% 80%, rgb(var(--app-inverse-rgb) / 0.14) 0 1px, transparent 1px);
+      radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--color-app-inverse) 16%, transparent) 0 1px, transparent 1px),
+      radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--color-app-inverse) 14%, transparent) 0 1px, transparent 1px),
+      radial-gradient(circle at 40% 70%, color-mix(in srgb, var(--color-app-inverse) 12%, transparent) 0 1px, transparent 1px),
+      radial-gradient(circle at 70% 80%, color-mix(in srgb, var(--color-app-inverse) 14%, transparent) 0 1px, transparent 1px);
     background-size: 160px 160px;
     filter: contrast(150%) brightness(115%);
     animation: grain-drift 16s steps(10) infinite;
@@ -146,7 +118,7 @@
 
   .dashed-h {
     height: 2px;
-    background-image: repeating-linear-gradient(to right, rgb(var(--app-border-rgb)) 0%, rgb(var(--app-border-rgb)) 4px, transparent 4px, transparent 16px);
+    background-image: repeating-linear-gradient(to right, var(--color-app-border) 0%, var(--color-app-border) 4px, transparent 4px, transparent 16px);
     width: 100vw;
     position: relative;
     left: 50%;
@@ -167,9 +139,9 @@
     bottom: 0;
     width: 2px;
     background-image:
-      radial-gradient(circle at 50% 8px, rgb(var(--app-accent-soft-rgb) / 0.55) 0 1.5px, transparent 2px),
-      radial-gradient(circle at 50% calc(100% - 8px), rgb(var(--app-accent-soft-rgb) / 0.35) 0 1.5px, transparent 2px),
-      repeating-linear-gradient(to bottom, rgb(var(--app-border-rgb)) 0%, rgb(var(--app-border-rgb)) 4px, transparent 4px, transparent 16px);
+      radial-gradient(circle at 50% 8px, color-mix(in srgb, var(--color-app-accent-soft) 55%, transparent) 0 1.5px, transparent 2px),
+      radial-gradient(circle at 50% calc(100% - 8px), color-mix(in srgb, var(--color-app-accent-soft) 35%, transparent) 0 1.5px, transparent 2px),
+      repeating-linear-gradient(to bottom, var(--color-app-border) 0%, var(--color-app-border) 4px, transparent 4px, transparent 16px);
     pointer-events: none;
     z-index: -10;
     opacity: 0.9;
@@ -184,47 +156,47 @@
   }
 
   .project-modal-surface {
-    background-color: rgb(var(--app-bg-rgb));
+    background-color: var(--color-app-bg);
   }
 
   .project-modal-border {
-    border-color: rgb(var(--app-modal-border-rgb));
-    box-shadow: 0 0 0 1px rgb(var(--app-modal-border-rgb) / 0.28) inset;
+    border-color: var(--color-app-modal-border);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-app-modal-border) 28%, transparent) inset;
   }
 
   .project-modal-item {
-    background-color: rgb(var(--app-surface-2-rgb));
+    background-color: var(--color-app-surface-2);
   }
 
   .shadow-app-image {
-    box-shadow: 0 10px 40px rgb(var(--app-shadow-rgb) / 0.08);
+    box-shadow: 0 10px 40px color-mix(in srgb, var(--color-app-shadow) 8%, transparent);
   }
 
   .project-preview-glow {
     background-image:
-      radial-gradient(circle at center, rgb(var(--app-accent-soft-rgb) / 0.12), rgb(var(--app-inverse-rgb) / 0.05) 35%, transparent 72%);
+      radial-gradient(circle at center, color-mix(in srgb, var(--color-app-accent-soft) 12%, transparent), color-mix(in srgb, var(--color-app-inverse) 5%, transparent) 35%, transparent 72%);
   }
 
   .cursor-ring-interactive {
-    border-color: rgb(var(--app-accent-soft-rgb) / 0.28);
-    background-color: rgb(var(--app-accent-soft-rgb) / 0.12);
-    box-shadow: 0 0 24px rgb(var(--app-accent-soft-rgb) / 0.18);
+    border-color: color-mix(in srgb, var(--color-app-accent-soft) 28%, transparent);
+    background-color: color-mix(in srgb, var(--color-app-accent-soft) 12%, transparent);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--color-app-accent-soft) 18%, transparent);
   }
 
   .cursor-ring-idle {
-    border-color: rgb(var(--app-border-rgb) / 0.6);
-    background-color: rgb(var(--app-surface-rgb) / 0.05);
-    box-shadow: 0 0 24px rgb(var(--app-shadow-rgb) / 0.06);
+    border-color: color-mix(in srgb, var(--color-app-border) 60%, transparent);
+    background-color: color-mix(in srgb, var(--color-app-surface) 5%, transparent);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--color-app-shadow) 6%, transparent);
   }
 
   .cursor-dot-interactive {
-    background-color: rgb(var(--app-accent-soft-rgb));
-    box-shadow: 0 0 14px rgb(var(--app-accent-soft-rgb) / 0.35);
+    background-color: var(--color-app-accent-soft);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--color-app-accent-soft) 35%, transparent);
   }
 
   .cursor-dot-idle {
-    background-color: rgb(var(--app-heading-rgb));
-    box-shadow: 0 0 14px rgb(var(--app-shadow-rgb) / 0.22);
+    background-color: var(--color-app-heading);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--color-app-shadow) 22%, transparent);
   }
 
   .interact-hover,
@@ -267,8 +239,8 @@
 
   .ticker-track {
     overflow: hidden;
-    mask-image: linear-gradient(to right, transparent, rgb(var(--app-mask-edge-rgb)) 8%, rgb(var(--app-mask-edge-rgb)) 92%, transparent);
-    -webkit-mask-image: linear-gradient(to right, transparent, rgb(var(--app-mask-edge-rgb)) 8%, rgb(var(--app-mask-edge-rgb)) 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000000 8%, #000000 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000000 8%, #000000 92%, transparent);
   }
 
   .ticker-row {
@@ -283,10 +255,6 @@
   }
 }
 
-/* 
-  Rehype Pretty Code Dual Theme support 
-  Maps the shiki-light and shiki-dark properties according to the global .dark Tailwind class
-*/
 code[data-theme*=" "],
 code[data-theme*=" "] span {
   color: var(--shiki-light);
@@ -305,30 +273,30 @@ figure[data-rehype-pretty-code-figure] {
 
   figure[data-rehype-pretty-code-figure] pre {
   @apply overflow-x-auto py-4 rounded-xl bg-app-surface-2 my-6;
-  background-color: var(--app-code-bg);
+  background-color: var(--color-app-code-bg);
 }
 
 .dark figure[data-rehype-pretty-code-figure] pre {
-  background-color: var(--app-code-dark-bg);
+  background-color: var(--color-app-code-dark-bg);
 }
 
 .blog-content {
-  --tw-prose-body: rgb(var(--app-text-rgb));
-  --tw-prose-headings: rgb(var(--app-heading-rgb));
-  --tw-prose-lead: rgb(var(--app-text-rgb));
-  --tw-prose-links: rgb(var(--app-accent-rgb));
-  --tw-prose-bold: rgb(var(--app-heading-rgb));
-  --tw-prose-counters: rgb(var(--app-text-subtle-rgb));
-  --tw-prose-bullets: rgb(var(--app-border-strong-rgb));
-  --tw-prose-hr: rgb(var(--app-border-rgb));
-  --tw-prose-quotes: rgb(var(--app-text-muted-rgb));
-  --tw-prose-quote-borders: rgb(var(--app-border-rgb));
-  --tw-prose-captions: rgb(var(--app-text-subtle-rgb));
-  --tw-prose-code: rgb(var(--app-heading-rgb));
-  --tw-prose-pre-code: rgb(var(--app-heading-rgb));
-  --tw-prose-pre-bg: rgb(var(--app-surface-2-rgb));
-  --tw-prose-th-borders: rgb(var(--app-border-rgb));
-  --tw-prose-td-borders: rgb(var(--app-border-rgb));
+  --tw-prose-body: var(--color-app-text);
+  --tw-prose-headings: var(--color-app-heading);
+  --tw-prose-lead: var(--color-app-text);
+  --tw-prose-links: var(--color-app-accent);
+  --tw-prose-bold: var(--color-app-heading);
+  --tw-prose-counters: var(--color-app-text-subtle);
+  --tw-prose-bullets: var(--color-app-border-strong);
+  --tw-prose-hr: var(--color-app-border);
+  --tw-prose-quotes: var(--color-app-text-muted);
+  --tw-prose-quote-borders: var(--color-app-border);
+  --tw-prose-captions: var(--color-app-text-subtle);
+  --tw-prose-code: var(--color-app-heading);
+  --tw-prose-pre-code: var(--color-app-heading);
+  --tw-prose-pre-bg: var(--color-app-surface-2);
+  --tw-prose-th-borders: var(--color-app-border);
+  --tw-prose-td-borders: var(--color-app-border);
 }
 
 figure[data-rehype-pretty-code-figure] code {
@@ -340,10 +308,9 @@ figure[data-rehype-pretty-code-figure] code>[data-line] {
   @apply px-4 py-0.5 border-l-2 border-transparent;
 }
 
-/* Code block backgrounds (dark matches github-dark-dimmed default bg) */
 :root {
-  --shiki-light-bg: var(--app-code-bg);
-  --shiki-dark-bg: var(--app-code-dark-bg);
+  --shiki-light-bg: var(--color-app-code-bg);
+  --shiki-dark-bg: var(--color-app-code-dark-bg);
 }
 
 @keyframes grain-drift {
