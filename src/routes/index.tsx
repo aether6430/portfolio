@@ -60,7 +60,7 @@ function Index() {
               <img
                 src={profile.image}
                 alt="Profile"
-                className="w-28 h-28 md:w-30 md:h-30 rounded-xl object-cover object-center border border-app-border shadow-[0_10px_40px_rgba(var(--app-shadow-rgb),0.08)]"
+                className="w-28 h-28 md:w-30 md:h-30 rounded-xl object-cover object-center border border-app-border shadow-app-image"
               />
               <div className="pb-1">
                 <motion.h1
@@ -254,7 +254,7 @@ function ProjectCard({ project, onDetailsClick }: { project: Project, onDetailsC
       transition={{ duration: 0.25, ease: smoothEase }}
     >
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-app-border/80 bg-transparent">
-        <motion.div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--app-accent-soft-rgb),0.12),rgba(var(--app-inverse-rgb),0.05)_35%,transparent_72%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <motion.div className="project-preview-glow absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <motion.img
           src={project.image}
           alt={project.title}
@@ -321,7 +321,7 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
         onClick={onClose}
       />
       <motion.div
-        className="relative w-full max-w-6xl max-h-[88vh] overflow-hidden rounded-3xl border border-app-border-strong/80 bg-app-bg shadow-[0_18px_56px_rgba(var(--app-shadow-rgb),0.22)]"
+        className="relative w-full max-w-6xl max-h-[88vh] overflow-hidden rounded-lg border border-app-modal-border bg-app-bg shadow-2xl project-modal-surface project-modal-border"
         initial={{ y: 20, scale: 0.985, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 16, scale: 0.985, opacity: 0 }}
@@ -331,14 +331,14 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
           <div className="flex max-h-[88vh] flex-col gap-4 overflow-y-auto p-6 sm:p-8 lg:p-8">
             {project.liveUrl ? (
               <div className="space-y-3">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-app-surface-2">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-app-surface-2 project-modal-item">
                   <iframe
                     src={project.liveUrl}
                     title={`${project.title} preview`}
                     className="absolute inset-0 h-full w-full border-0"
                     loading="lazy"
                   />
-                  <div className="absolute left-5 top-5 rounded-full border border-app-border-strong/70 bg-app-surface/90 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-app-heading shadow-none">
+                  <div className="absolute left-5 top-5 rounded-full border border-app-accent-soft/30 bg-app-surface/90 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-app-accent-soft shadow-none">
                     Live preview
                   </div>
                 </div>
@@ -352,10 +352,10 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
                 </a>
               </div>
             ) : (
-              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-app-surface-2">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-app-surface-2 project-modal-item">
                 <img src={project.image} alt={project.title} className="absolute inset-0 h-full w-full object-cover object-center" />
-                <div className="absolute inset-0 bg-gradient-to-t from-app-overlay/55 via-app-overlay/10 to-transparent" />
-                <div className="absolute left-5 top-5 rounded-full border border-app-border-strong/70 bg-app-surface/90 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-app-heading shadow-none">
+                <div className="absolute inset-0 bg-gradient-to-t from-app-bg/55 via-app-bg/10 to-transparent" />
+                <div className="absolute left-5 top-5 rounded-full border border-app-accent-soft/30 bg-app-surface/90 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-app-accent-soft shadow-none">
                   Project image
                 </div>
               </div>
@@ -371,7 +371,7 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full bg-app-surface-2 px-3 py-2 text-xs text-app-text-muted transition-colors hover:bg-app-surface-hover hover:text-app-heading"
+                className="rounded-full border border-app-modal-border bg-app-surface-2 px-3 py-2 text-xs text-app-text-muted transition-colors hover:bg-app-surface-hover hover:text-app-heading"
               >
                 Close
               </button>
@@ -381,20 +381,17 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
               {project.summary}
             </p>
 
-            <ol className="space-y-3 border-t border-app-border pt-5 text-sm leading-6 text-app-text-muted">
-              {project.details.map((item, index) => (
-                <li key={item} className="grid grid-cols-[auto_1fr] gap-4 rounded-2xl border border-app-border/80 bg-app-surface-2/70 p-4">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full border border-app-border-strong/80 bg-app-surface text-[10px] font-semibold text-app-text-subtle">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="pt-0.5">{item}</span>
+            <ol className="list-decimal space-y-3 border-t border-app-border pl-5 pt-5 text-sm leading-6 text-app-text-muted marker:text-app-accent-soft">
+              {project.details.map((item) => (
+                <li key={item} className="pl-2">
+                  <span>{item}</span>
                 </li>
               ))}
             </ol>
 
             <div className="flex flex-wrap gap-2 border-t border-app-border pt-5">
               {project.tags.map((tag) => (
-                <span key={tag} className="pill rounded-full bg-app-surface-2 text-app-text">
+                <span key={tag} className="pill rounded-full border border-app-accent-soft/25 bg-app-surface-2 text-app-accent-soft">
                   {tag}
                 </span>
               ))}

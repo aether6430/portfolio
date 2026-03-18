@@ -2,7 +2,7 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-brand: #00BC7D;
+  --color-brand: rgb(var(--app-accent-rgb) / <alpha-value>);
   --color-app-bg: rgb(var(--app-bg-rgb) / <alpha-value>);
   --color-app-surface: rgb(var(--app-surface-rgb) / <alpha-value>);
   --color-app-surface-2: rgb(var(--app-surface-2-rgb) / <alpha-value>);
@@ -17,10 +17,11 @@
   --color-app-overlay: rgb(var(--app-overlay-rgb) / <alpha-value>);
   --color-app-accent: rgb(var(--app-accent-rgb) / <alpha-value>);
   --color-app-accent-soft: rgb(var(--app-accent-soft-rgb) / <alpha-value>);
-  --color-app-modal-backdrop: rgb(var(--app-modal-backdrop-rgb) / 0.88);
-  --color-app-modal-surface: rgb(var(--app-modal-surface-rgb) / 1);
-  --color-app-modal-surface-strong: rgb(var(--app-modal-surface-strong-rgb) / 1);
-  --color-app-modal-border: rgb(var(--app-modal-border-rgb) / 1);
+  --color-app-modal-backdrop: rgb(var(--app-modal-backdrop-rgb) / var(--app-modal-backdrop-alpha));
+  --color-app-modal-surface: rgb(var(--app-modal-surface-rgb) / <alpha-value>);
+  --color-app-modal-surface-strong: rgb(var(--app-modal-surface-strong-rgb) / <alpha-value>);
+  --color-app-modal-border: rgb(var(--app-modal-border-rgb) / <alpha-value>);
+  --color-app-modal-item: rgb(var(--app-modal-item-rgb) / <alpha-value>);
 
   --font-sans: "Arial", "Helvetica", sans-serif;
   --font-mono: "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
@@ -41,13 +42,15 @@
     --app-border-strong-rgb: 212 212 216;
     --app-inverse-rgb: 255 255 255;
     --app-overlay-rgb: 9 9 11;
-    --app-accent-rgb: 0 188 125;
+    --app-accent-rgb: 171 196 255;
     --app-accent-soft-rgb: 171 196 255;
     --app-shadow-rgb: 0 0 0;
-    --app-modal-backdrop-rgb: 5 7 6;
-    --app-modal-surface-rgb: 15 20 18;
-    --app-modal-surface-strong-rgb: 21 29 25;
-    --app-modal-border-rgb: 45 61 54;
+    --app-modal-backdrop-rgb: 255 255 255;
+    --app-modal-backdrop-alpha: 0.92;
+    --app-modal-surface-rgb: 255 255 255;
+    --app-modal-surface-strong-rgb: 244 244 245;
+    --app-modal-border-rgb: 196 210 255;
+    --app-modal-item-rgb: 244 244 245;
     --app-code-bg: #ffffff;
     --app-code-dark-bg: #22272e;
     --app-mask-edge-rgb: 0 0 0;
@@ -66,13 +69,15 @@
     --app-border-strong-rgb: 63 63 70;
     --app-inverse-rgb: 255 255 255;
     --app-overlay-rgb: 9 9 11;
-    --app-accent-rgb: 0 188 125;
+    --app-accent-rgb: 171 196 255;
     --app-accent-soft-rgb: 171 196 255;
     --app-shadow-rgb: 9 9 11;
-    --app-modal-backdrop-rgb: 5 7 6;
-    --app-modal-surface-rgb: 15 20 18;
-    --app-modal-surface-strong-rgb: 21 29 25;
-    --app-modal-border-rgb: 45 61 54;
+    --app-modal-backdrop-rgb: 5 6 7;
+    --app-modal-backdrop-alpha: 0.94;
+    --app-modal-surface-rgb: 9 9 11;
+    --app-modal-surface-strong-rgb: 24 24 27;
+    --app-modal-border-rgb: 78 93 140;
+    --app-modal-item-rgb: 24 24 27;
     --app-code-bg: #22272e;
     --app-code-dark-bg: #22272e;
     --app-mask-edge-rgb: 0 0 0;
@@ -176,6 +181,50 @@
 
   .dashed-v-container::after {
     right: 0;
+  }
+
+  .project-modal-surface {
+    background-color: rgb(var(--app-bg-rgb));
+  }
+
+  .project-modal-border {
+    border-color: rgb(var(--app-modal-border-rgb));
+    box-shadow: 0 0 0 1px rgb(var(--app-modal-border-rgb) / 0.28) inset;
+  }
+
+  .project-modal-item {
+    background-color: rgb(var(--app-surface-2-rgb));
+  }
+
+  .shadow-app-image {
+    box-shadow: 0 10px 40px rgb(var(--app-shadow-rgb) / 0.08);
+  }
+
+  .project-preview-glow {
+    background-image:
+      radial-gradient(circle at center, rgb(var(--app-accent-soft-rgb) / 0.12), rgb(var(--app-inverse-rgb) / 0.05) 35%, transparent 72%);
+  }
+
+  .cursor-ring-interactive {
+    border-color: rgb(var(--app-accent-soft-rgb) / 0.28);
+    background-color: rgb(var(--app-accent-soft-rgb) / 0.12);
+    box-shadow: 0 0 24px rgb(var(--app-accent-soft-rgb) / 0.18);
+  }
+
+  .cursor-ring-idle {
+    border-color: rgb(var(--app-border-rgb) / 0.6);
+    background-color: rgb(var(--app-surface-rgb) / 0.05);
+    box-shadow: 0 0 24px rgb(var(--app-shadow-rgb) / 0.06);
+  }
+
+  .cursor-dot-interactive {
+    background-color: rgb(var(--app-accent-soft-rgb));
+    box-shadow: 0 0 14px rgb(var(--app-accent-soft-rgb) / 0.35);
+  }
+
+  .cursor-dot-idle {
+    background-color: rgb(var(--app-heading-rgb));
+    box-shadow: 0 0 14px rgb(var(--app-shadow-rgb) / 0.22);
   }
 
   .interact-hover,

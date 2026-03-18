@@ -234,9 +234,7 @@ export function CursorTrail() {
     <div className="pointer-events-none fixed inset-0 z-50 hidden md:block">
       <motion.div
         className={`absolute h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full backdrop-blur-[1px] ${
-          isInteractive
-            ? 'border-app-inverse/20 bg-app-inverse/5 shadow-[0_0_24px_rgba(var(--app-inverse-rgb),0.06)]'
-            : 'border-app-border/60 bg-app-surface/5 shadow-[0_0_24px_rgba(var(--app-shadow-rgb),0.06)]'
+          isInteractive ? 'cursor-ring-interactive' : 'cursor-ring-idle'
         }`}
         animate={{ scale: isInteractive ? 1.45 : 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 18 }}
@@ -247,15 +245,10 @@ export function CursorTrail() {
       />
       <motion.div
         className={`absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${
-          isInteractive
-            ? 'bg-app-inverse shadow-[0_0_14px_rgba(var(--app-inverse-rgb),0.45)]'
-            : 'bg-app-heading shadow-[0_0_14px_rgba(var(--app-shadow-rgb),0.22)]'
+          isInteractive ? 'cursor-dot-interactive' : 'cursor-dot-idle'
         }`}
         animate={{
           scale: isInteractive ? 0.7 : 1,
-          backgroundColor: isInteractive
-            ? 'rgb(var(--app-inverse-rgb))'
-            : 'rgb(var(--app-heading-rgb))',
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
         style={{
