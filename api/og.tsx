@@ -75,7 +75,7 @@ export default function handler(request: Request) {
               fontSize: 24,
             }}
           >
-            <span style={{ fontWeight: 600, color: '#a1a1aa' }}>abhiram.app</span>
+            <span style={{ fontWeight: 600, color: '#a1a1aa' }}>damod.space</span>
           </div>
         </div>
       ),
