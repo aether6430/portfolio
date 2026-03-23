@@ -115,7 +115,7 @@ function BlogPost() {
       <section className="flex flex-col">
         <div className="dashed-h" />
         <div className="flex flex-col gap-6 py-6">
-          <Link to="/blog" className="btn-secondary rounded-full self-start">
+          <Link to="/blog" viewTransition={{ types: ['route-back'] }} className="btn-secondary rounded-full self-start">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to blogs</span>
           </Link>

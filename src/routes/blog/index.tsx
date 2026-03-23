@@ -27,7 +27,11 @@ function BlogList() {
       <section className="flex flex-col">
         <div className="dashed-h" />
         <div className="flex items-center gap-4 py-6">
-          <Link to="/" className="p-2 -ml-2 rounded-full hover:bg-app-surface-2 transition-colors interact-hover">
+          <Link
+            to="/"
+            viewTransition={{ types: ['route-back'] }}
+            className="p-2 -ml-2 rounded-full hover:bg-app-surface-2 transition-colors interact-hover"
+          >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">Blogs</h1>
@@ -36,7 +40,13 @@ function BlogList() {
 
         <div className="flex flex-col gap-4 pt-6">
           {blogs.map((blog) => (
-            <Link key={blog.slug} to="/blog/$slug" params={{ slug: blog.slug }} className={blogCardClass}>
+            <Link
+              key={blog.slug}
+              to="/blog/$slug"
+              params={{ slug: blog.slug }}
+              viewTransition={{ types: ['route-forward'] }}
+              className={blogCardClass}
+            >
               <h3 className="text-base font-semibold group-hover:underline line-clamp-2">{blog.title || blog.slug}</h3>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-app-text-subtle">
                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {blog.date || 'Recent'}</span>

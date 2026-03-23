@@ -86,6 +86,80 @@
   h6 {
     color: var(--color-app-heading);
   }
+
+  :root:active-view-transition {
+    overflow: hidden;
+  }
+
+  @keyframes route-forward-old {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    to {
+      transform: translateX(-4%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes route-forward-new {
+    from {
+      transform: translateX(8%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes route-back-old {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    to {
+      transform: translateX(4%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes route-back-new {
+    from {
+      transform: translateX(-8%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  :root:active-view-transition-type(route-forward)::view-transition-old(root) {
+    animation: route-forward-old 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  :root:active-view-transition-type(route-forward)::view-transition-new(root) {
+    animation: route-forward-new 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  :root:active-view-transition-type(route-back)::view-transition-old(root) {
+    animation: route-back-old 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  :root:active-view-transition-type(route-back)::view-transition-new(root) {
+    animation: route-back-new 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  :root:active-view-transition-type(route-forward)::view-transition-group(root),
+  :root:active-view-transition-type(route-back)::view-transition-group(root) {
+    animation-duration: 420ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
 @layer utilities {
