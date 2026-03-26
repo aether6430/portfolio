@@ -5,17 +5,19 @@ tags: ["Avenire", "Learning", "JEE", "Startups"]
 readTime: 6
 ---
 
+import { TradeoffMatrix } from "@/components/blog/TradeoffMatrix"
+
 People think this is a conflict. I've started to think it might be the whole point.
 
 ---
 
 ## The setup
 
-JEE - the Joint Entrance Examination, is widely considered one of the hardest undergraduate entrance exams in the world. Roughly a million students take it each year. Somewhere between two and five thousand end up at IITs. The math on what that means for your preparation is stark.
+JEE — the Joint Entrance Examination — is widely considered one of the hardest undergraduate entrance exams in the world. Roughly a million students take it each year. Somewhere between two and five thousand end up at IITs. The math on what that means for your preparation is stark.
 
 I'm studying for it. I'm also building Avenire, an AI-powered learning platform with a Socratic tutor, spaced repetition, a notes editor, and a retrieval system over your own materials. The codebase spans a monorepo with five packages. I have weekly mock tests. I have a startup demo deadline. I have a novel in progress.
 
-The obvious question is: how? The less obvious question, the one I find more interesting is: why would anyone design their life this way?
+The obvious question is: how? The less obvious question — the one I find more interesting — is: why would anyone design their life this way?
 
 ---
 
@@ -25,7 +27,7 @@ My first instinct, when the JEE timeline got serious, was to compartmentalize. S
 
 This lasted about two weeks. It fails for a structural reason: both JEE preparation and serious software development require deep work, and you can't do two things that require your full attention by splitting your day in half. You just do both poorly.
 
-What actually happened and I think this was the right thing, even if I didn't plan it is that they started informing each other.
+What actually happened — and I think this was the right thing, even if I didn't plan it — is that they started informing each other.
 
 ---
 
@@ -33,11 +35,11 @@ What actually happened and I think this was the right thing, even if I didn't pl
 
 JEE problems have a specific quality. They're not testing whether you know a fact. They're testing whether you can apply a concept to a configuration you haven't seen before, under time pressure, with multiple concepts in play simultaneously.
 
-This is a very specific cognitive demand, and meeting it requires a very specific kind of preparation. Not coverage depth. Not familiarity or fluency. The difference between knowing that conservation of angular momentum is a principle and being able to deploy it instantly in an Olympiad-style mechanics problem is enormous, and it's not a difference in information. It's a difference in the quality of the mental model.
+This is a very specific cognitive demand, and meeting it requires a very specific kind of preparation. Not coverage. Not familiarity or fluency. The difference between knowing that conservation of angular momentum is a principle and being able to deploy it instantly in an Olympiad-style mechanics problem is enormous, and it's not a difference in information. It's a difference in the quality of the mental model.
 
-When I sit with a hard problem, the kind where you have to hold three physical setups in your head simultaneously and figure out which constraint bridges them I'm doing something that's hard to articulate from the outside. There's a process of active search: running through the topology of the problem, looking for the degree of freedom that collapses it, feeling when you're close to the right representation and when you're barking up the wrong tree.
+When I sit with a hard problem — the kind where you have to hold three physical setups in your head simultaneously and figure out which constraint bridges them — I'm doing something that's hard to articulate from the outside. There's a process of active search: running through the topology of the problem, looking for the degree of freedom that collapses it, feeling when you're close to the right representation and when you're barking up the wrong tree.
 
-That process is exactly what I'm trying to build into Deep Tutor. Not the answer the search process. The thing that differentiates a student who "knows" physics from one who can actually solve physics problems is not the knowledge itself. It's the search heuristics: where to look, what to try first, how to recognize that an approach isn't working.
+That process is exactly what I'm trying to build into Deep Tutor. Not the answer — the search process. The thing that differentiates a student who "knows" physics from one who can actually solve physics problems is not the knowledge itself. It's the search heuristics: where to look, what to try first, how to recognize that an approach isn't working.
 
 I couldn't have designed Deep Tutor the way I did without preparing for JEE. The problems forced me to be honest about what actually transfers.
 
@@ -47,13 +49,13 @@ I couldn't have designed Deep Tutor the way I did without preparing for JEE. The
 
 The flip side is maybe more surprising.
 
-Building a learning platform forces you to think about learning at the level of mechanism. Why does spaced repetition work? Because of the testing effect retrieval is generative, not just reproductive. Why is the Socratic method better than explanation? Because you can't construct a question in response to an explanation without having actually understood the explanation. Why does interleaving topics improve retention compared to blocking? Because it forces you to identify which approach applies, which is exactly the skill the exam tests.
+Building a learning platform forces you to think about learning at the level of mechanism. Why does spaced repetition work? Because of the testing effect — retrieval is generative, not just reproductive. Why is the Socratic method better than explanation? Because you can't construct a question in response to an explanation without having actually understood the explanation. Why does interleaving topics improve retention compared to blocking? Because it forces you to identify which approach applies, which is exactly the skill the exam tests.
 
-When you understand the mechanisms, you can study with them instead of accidentally against them.
+When you understand the mechanisms, you can study *with* them instead of accidentally against them.
 
 Before I understood how forgetting actually works, I used to study by re-reading. It feels productive. The material becomes familiar. The familiarity feels like retention. It isn't. Familiarity and retrieval are different cognitive processes, and only retrieval actually deepens the trace.
 
-After implementing FSRS and reading the material seriously, I changed how I study. I test myself instead of reviewing. I do problems before I feel ready. I space my practice instead of massing it. My JEE scores have improved in ways I can actually trace to specific methodological changes.
+After implementing FSRS and reading the research seriously, I changed how I study. I test myself instead of reviewing. I do problems before I feel ready. I space my practice instead of massing it. My JEE scores have improved in ways I can actually trace to specific methodological changes.
 
 ---
 
@@ -63,13 +65,15 @@ There's a version of this essay where I claim that doing both things simultaneou
 
 That version is false.
 
+<TradeoffMatrix />
+
 Doing both is genuinely hard. There are weeks where a demo deadline puts JEE on the back burner, and I know it, and it's stressful. There are weeks where a mock test goes badly and I have to sit with the knowledge that I should be studying more, and I'm choosing not to, and I feel the weight of that choice.
 
 The JEE timeline is not abstract. The exam date is real. The percentile cutoffs are real. Every week that I spend building Avenire instead of grinding problem sets is a real trade-off with real consequences.
 
-I've made peace with it... or I'm in the process of making peace with it. Because the alternative doesn't feel right either. There's a version of me that dropped everything to study full-time and maybe hit a higher percentile. I'm not sure that person is building something worth building, or learning what's worth learning.
+I've made peace with it — or I'm in the process of making peace with it. Because the alternative doesn't feel right either. There's a version of me that dropped everything to study full-time and maybe hit a higher percentile. I'm not sure that person is building something worth building, or learning what's worth learning.
 
-The thing about JEE is that it's a gate. It's an important gate, and I'm not dismissing it. But it's not the point. The point - the actual point, for me is whether I'm building the kind of understanding that compounds. The kind that lasts past the exam. The kind that you can use.
+The thing about JEE is that it's a gate. It's an important gate, and I'm not dismissing it. But it's not the point. The point — the actual point, for me — is whether I'm building the kind of understanding that compounds. The kind that lasts past the exam. The kind that you can use.
 
 That's also what Avenire is for. So maybe the conflict isn't a conflict. Maybe it's the same question asked from two different angles.
 
@@ -79,10 +83,10 @@ That's also what Avenire is for. So maybe the conflict isn't a conflict. Maybe i
 
 I think I'm stress-testing Avenire on myself. Not intentionally at first, but now somewhat deliberately.
 
-When you're under genuine time pressure, when the stakes are real and the exam is coming and you actually need to learn things in limited time you find out very quickly whether your tools work. The learning optimizations that sound good in theory either hold up under pressure or they don't.
+When you're under genuine time pressure — when the stakes are real and the exam is coming and you actually need to learn things in limited time — you find out very quickly whether your tools work. The learning optimizations that sound good in theory either hold up under pressure or they don't.
 
-Avenire's tools are holding up. The spaced repetition actually works. The Socratic tutor forces encoding in a way that passive review doesn't. The retrieval system means I can ask "why does the effective nuclear charge increase across a period?" and get back the relevant section of the  one shot I uploaded three months ago, in context, connected to my own notes.
+Avenire's tools are holding up. The spaced repetition actually works. The Socratic tutor forces encoding in a way that passive review doesn't. The retrieval system means I can ask "why does the effective nuclear charge increase across a period?" and get back the relevant section of the lecture I uploaded three months ago, in context, connected to my own notes.
 
-That feedback loop, using the product for something I genuinely need, feeling where it helps and where it fails is the most valuable signal I have. More valuable than any user interview. More valuable than any analytics dashboard.
+That feedback loop — using the product for something I genuinely need, feeling where it helps and where it fails — is the most valuable signal I have. More valuable than any user interview. More valuable than any analytics dashboard.
 
-The person I'm building Avenire for is, in some sense, me right now, trying to prepare for the hardest exam of my life while also building the company I believe in. If I can make that work for me, I'll have made something worth using.
+The person I'm building Avenire for is, in some sense, me right now: trying to prepare for the hardest exam of my life while also building the company I believe in. If I can make that work for me, I'll have made something worth using.

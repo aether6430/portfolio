@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { Calendar, Github, Twitter, Maximize2, Moon, Sun } from 'lucide-react'
+import { Calendar, Github, Twitter, Maximize2, Moon, Sun, ArrowRight } from 'lucide-react'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { AnimatedQuote, MotionSection, RevealWords, StaggerGroup, StaggerItem } from '../components/portfolio-motion'
 import { smoothEase } from '../components/motion-utils'
@@ -171,7 +171,16 @@ function Index() {
 
       <MotionSection className="flex flex-col pt-12">
         <div className="dashed-h" />
-        <h2 className="text-xl font-bold py-6">Blogs</h2>
+        <div className="flex items-center justify-between py-6">
+          <h2 className="text-xl font-bold">Blogs</h2>
+          <Link
+            to="/blog"
+            viewTransition={{ types: ['route-forward'] }}
+            className="p-2 -mr-2 rounded-full hover:bg-app-surface-2 transition-colors interact-hover"
+          >
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
         <div className="dashed-h" />
         <StaggerGroup className="flex flex-col gap-4 pt-6">
           {recentBlogs.map((blog) => (

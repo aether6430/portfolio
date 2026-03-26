@@ -17,6 +17,25 @@ function BlogList() {
     const readTime = frontmatter.readTime || Math.ceil((slug.length / 100) + 3)
     return { slug, ...frontmatter, readTime }
   })
+
+  // Sort blogs by date (newest first), fallback to slug if no date
+  const sortedBlogs = blogs.sort((a, b) => {
+    if (!a.date) return 1
+    if (!b.date) return -1
+    // Parse date in format "Mar 26, 2026"
+    const parseDate = (dateStr: string): Date => {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      const parts = dateStr.split(' ')
+      if (parts.length >= 3) {
+        const month = monthNames.indexOf(parts[0])
+        const day = parseInt(parts[1].replace(',', ''))
+        const year = parseInt(parts[2])
+        return new Date(year, month, day)
+      }
+      return new Date(dateStr)
+    }
+    return parseDate(b.date).getTime() - parseDate(a.date).getTime()
+  })
   const blogCardClass = 'group flex flex-col gap-2 p-4 -mx-4 rounded-xl hover:bg-app-surface-hover transition-colors interact-hover'
   const blogTagClass = 'pill px-2 py-0.5 text-[10px]'
 
@@ -39,7 +58,7 @@ function BlogList() {
         <div className="dashed-h" />
 
         <div className="flex flex-col gap-4 pt-6">
-          {blogs.map((blog) => (
+          {sortedBlogs.map((blog) => (
             <Link
               key={blog.slug}
               to="/blog/$slug"

@@ -1,0 +1,400 @@
+---
+title: "How Apollo Searches Your Mind"
+subtitle: "Three infrastructure upgrades that make Avenire's retrieval stack actually smart"
+date: "Mar 26, 2026"
+slug: "retrieval-infrastructure"
+tags: ["engineering", "avenire", "retrieval", "postgres"]
+---
+
+import { TrigramExplorer } from "@/components/blog/TrigramExplorer"
+import { DiffVisualizer } from "@/components/blog/DiffVisualizer"
+import { PipelineFlow } from "@/components/blog/PipelineFlow"
+
+There's a version of "search" that everyone understands — you type something, a list appears. Then there's the version that actually needs to work when a student asks Apollo, mid-panic, the night before a JEE test: *"Show me everywhere I wrote about Gauss's law"* or *"Find that problem with sin²θ I solved last week."*
+
+Those are different problems. And Avenire's retrieval stack, until recently, couldn't handle them well.
+
+This post is about three infrastructure changes that fix that. They're independent of each other, unglamorous by startup-blog standards, and exactly the kind of thing that determines whether an AI tutor feels genuinely intelligent or just statistically plausible.
+
+---
+
+## The Stack We Started With
+
+Apollo, Avenire's tutor agent, retrieves context from a student's personal corpus — their notes, OCR'd PDFs, transcribed lectures, PYQ sets. The retrieval stack is a hybrid:
+
+- **Cohere `embed-multilingual-v3`** for dense vector embeddings (1024 dimensions)
+- **BM25** for keyword-based lexical matching
+- **pgvector** for nearest-neighbor search in PostgreSQL
+
+This is a solid foundation. Dense + sparse retrieval together handle most conceptual queries well. But there were three gaps we couldn't paper over.
+
+<PipelineFlow
+  steps={[
+    { id: "ingest", label: "Ingest", description: "Notes, PDFs, lectures land in the pipeline" },
+    { id: "chunk", label: "Chunk", description: "Split into ~512-token segments" },
+    { id: "embed", label: "Embed", description: "Cohere API → 1024-dim vector" },
+    { id: "store", label: "Store", description: "pgvector + BM25 index" },
+    { id: "query", label: "Query", description: "Hybrid retrieval at Apollo query time" },
+  ]}
+  gaps={[
+    { after: "store", label: "Gap A", description: "No formula/exact search" },
+    { after: "embed", label: "Gap B", description: "Redundant embeddings for shared docs" },
+    { after: "embed", label: "Gap C", description: "Re-embeds all chunks on any edit" },
+  ]}
+/>
+
+**Gap A:** Neither semantic search nor BM25 can find `∂v/∂t` or `sin²θ` reliably. BM25 tokenises on whitespace and loses mathematical symbols. Semantic search returns topically similar chunks — not the ones with the actual notation. The only option was a full table scan, which doesn't scale past ~1,000 notes.
+
+**Gap B:** Many students share source material — the same HC Verma chapter, NCERT PDF, DPP sheet. Every student who uploads the same document triggers a full Cohere embedding pass. At ~1,200 tokens per chunk across ~200 chunks per textbook, this adds 10–30 seconds of ingestion latency *and* costs real money, every time.
+
+**Gap C:** When a student edits a single sentence in a 2,000-word note, the pipeline re-processes every chunk. For an 8-chunk note, that's 8 Cohere API calls when 1 changed.
+
+Three features. Three independent fixes. Let's go through each.
+
+---
+
+## Feature A — pg_trgm: Finding What You Actually Typed
+
+### The Problem
+
+Imagine you're reviewing for electricity and magnetism and you want to find every note where you worked through a specific formula derivation. You ask Apollo: *"Find everywhere I wrote `∫ E · dA`."*
+
+Semantic search will return notes about Gauss's law, electric flux, closed surfaces. Useful, but not what you asked. BM25 won't even see the `∫` — it's not in its vocabulary. Neither gives you the line you remember writing.
+
+### What pg_trgm Does
+
+PostgreSQL's `pg_trgm` extension splits every string into overlapping 3-character sequences (trigrams) and builds a GIN inverted index over them. When you search, it decomposes your query the same way and does a posting-list intersection to find candidates fast — then confirms on the actual text.
+
+<TrigramExplorer
+  defaultText="sin²θ + cos²θ = 1"
+  description="Type any formula or phrase to see how pg_trgm breaks it into trigrams for indexing."
+/>
+
+The key property: `ILIKE '%pattern%'` and regex `~` operators on a `gin_trgm_ops` column become index-accelerated. Without the index, those are O(n) full table scans. With it, they're typically O(log n) to O(k) where k is the number of matching rows.
+
+False positives are possible (rows that share all trigrams but not the full string) — Postgres handles this with an automatic recheck pass. False negatives are not possible.
+
+### The Migration
+
+```sql
+-- Enable the extension (once, requires superuser)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- GIN index on chunk content — CONCURRENTLY means no table lock
+CREATE INDEX CONCURRENTLY idx_chunks_content_trgm
+  ON chunks
+  USING gin (content gin_trgm_ops);
+```
+
+`CONCURRENTLY` is the key word. It builds the index without locking the table, so you can run this on a live production database. Expect 1–5 minutes depending on table size.
+
+In Drizzle, since it doesn't natively emit GIN indexes, this lives in a raw SQL migration:
+
+```typescript
+// drizzle/migrations/0042_add_trgm_indexes.sql
+export const up = sql`
+  CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  CREATE INDEX CONCURRENTLY idx_chunks_content_trgm
+    ON chunks USING gin (content gin_trgm_ops);
+`;
+```
+
+### Three Query Modes
+
+Apollo gets a new `trigram_search` tool alongside `semantic_search` and `bm25_search`. It supports three modes:
+
+**Substring search** — for exact patterns:
+```sql
+SELECT id, content, similarity(content, $1) AS score
+FROM chunks
+WHERE user_id = $2
+  AND content ILIKE $3   -- $3 = '%∫ E · dA%'
+ORDER BY score DESC
+LIMIT 20;
+```
+
+**Regex search** — for formula variants:
+```sql
+SELECT id, content FROM chunks
+WHERE user_id = $1
+  AND content ~ $2    -- e.g. 'sin.{0,3}θ'
+LIMIT 20;
+```
+
+**Fuzzy similarity** — when you remember approximate text:
+```sql
+SELECT id, content, similarity(content, $1) AS sim
+FROM chunks
+WHERE user_id = $2
+  AND content % $1   -- % operator = similarity threshold
+ORDER BY sim DESC
+LIMIT 10;
+```
+
+Apollo's routing planner decides which mode to use based on the query shape. If it detects mathematical symbols (`∂`, `∑`, `∫`, `θ`, `²`), quoted phrases, or explicit "find where I wrote" intent, it routes to `trigram_search`. Otherwise, semantic search handles it.
+
+**Performance:** On a GIN-indexed column, `ILIKE '%pattern%'` over 1M rows typically returns in 10–50ms. Without the index: 2–10 seconds. The index is most effective for patterns 4+ characters long.
+
+One honest limitation: OCR'd PDFs may have inconsistent encoding for math symbols. A note you typed might have `∂` (U+2202) while a scanned PDF has the ASCII approximation `d`. Trigram search works best on text the student wrote themselves.
+
+---
+
+## Feature B — Content-Addressed Embedding Cache
+
+### The Problem
+
+Cohere's `embed-multilingual-v3` is stateless and deterministic. The same input text always produces the same embedding vector. It is a pure function of the content.
+
+This means: there is no reason to compute any embedding more than once.
+
+But we were computing them constantly. Student A uploads HC Verma Chapter 1. 300 chunks, 300 Cohere API calls, 15–30 seconds, ~$0.015. Student B uploads the same chapter an hour later. 300 more API calls. Identical math, identical vectors, identical cost.
+
+At 100 students sharing 5 textbooks, that's 150,000 unnecessary Cohere calls.
+
+### The Architecture
+
+The fix is a single PostgreSQL table keyed by SHA-256 hash of the normalised chunk text. It's shared across all users — because the embedding is a function of the *text*, not of *who owns it*.
+
+```
+Ingestion pipeline (BullMQ job)
+  │
+  ├─ 1. Chunk document
+  ├─ 2. For each chunk:
+  │     a. Normalise text (trim, unicode normalise)
+  │     b. SHA-256 hash
+  │     c. CHECK embedding_cache
+  │          HIT  → copy embedding directly → done, $0.00
+  │          MISS → Cohere API → cache it → continue
+  └─ 3. Update document status
+```
+
+### The Schema
+
+```sql
+CREATE TABLE embedding_cache (
+  content_hash   char(64) PRIMARY KEY,   -- SHA-256 hex, 64 chars
+  embedding      vector(1024) NOT NULL,
+  model          text NOT NULL DEFAULT 'embed-multilingual-v3',
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  last_used_at   timestamptz NOT NULL DEFAULT now(),
+  use_count      integer NOT NULL DEFAULT 1
+);
+
+CREATE INDEX idx_embedding_cache_last_used ON embedding_cache (last_used_at);
+```
+
+Notice what's not in this table: `user_id`, `document_id`, `note_id`. The cache contains *no user-specific data* — only a hash and a vector. This is load-bearing. The cache being user-agnostic is what makes it work across students. Confirm before shipping:
+
+```sql
+-- Should return no rows
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'embedding_cache'
+  AND column_name IN ('user_id', 'document_id', 'note_id');
+```
+
+### The Implementation
+
+Text normalisation must be identical at write and read time — otherwise the same text produces different hashes:
+
+```typescript
+function normaliseChunkText(raw: string): string {
+  return raw
+    .trim()
+    .replace(/\r\n/g, '\n')      // normalise line endings
+    .replace(/\u00A0/g, ' ')     // non-breaking space → regular space
+    .normalize('NFC');           // Unicode canonical form
+}
+
+function hashChunkText(normalised: string): string {
+  return createHash('sha256').update(normalised, 'utf8').digest('hex');
+}
+```
+
+The batch lookup is the optimisation that actually matters. Cohere accepts up to 96 texts per request. So: check cache for all chunks in a document first, then make *one* Cohere call for all misses:
+
+```typescript
+async function batchGetOrComputeEmbeddings(
+  chunks: { id: string; text: string }[],
+  db: Database,
+  cohere: CohereClient
+): Promise<Map<string, number[]>> {
+  const hashes = chunks.map(c => ({
+    ...c,
+    normalised: normaliseChunkText(c.text),
+    hash: hashChunkText(normaliseChunkText(c.text)),
+  }));
+
+  // One DB read for all hashes
+  const cachedRows = await db
+    .select()
+    .from(embeddingCache)
+    .where(inArray(embeddingCache.contentHash, hashes.map(h => h.hash)));
+
+  const cacheMap = new Map(cachedRows.map(r => [r.contentHash, r.embedding]));
+  const misses = hashes.filter(h => !cacheMap.has(h.hash));
+
+  if (misses.length === 0) return /* cache-filled results */;
+
+  // One Cohere call for all misses
+  const response = await cohere.embed({
+    texts: misses.map(m => m.normalised),
+    model: 'embed-multilingual-v3',
+    inputType: 'search_document',
+  });
+
+  // Upsert to cache — handles concurrent workers gracefully
+  await db.insert(embeddingCache)
+    .values(misses.map((m, i) => ({
+      contentHash: m.hash,
+      embedding: response.embeddings[i],
+    })))
+    .onConflictDoUpdate({ ... });
+}
+```
+
+Two race conditions worth noting: if two workers simultaneously miss the cache for the same hash and both call Cohere, the `onConflictDoUpdate` upsert ensures only one row survives. The duplicate API call is harmless — it can only happen once per unique chunk on first ingestion.
+
+**Expected impact for a shared 300-chunk textbook:**
+- Without cache: 300 Cohere calls, 15–30s, ~$0.015 per student
+- With cache (warm): 0 Cohere calls, ~200ms (just DB reads), $0.00
+
+---
+
+## Feature C — Chunk-Level Dirty Tracking
+
+### The Problem
+
+Every save triggers a full re-ingestion. A student corrects a typo in their derivation notes — 8 Cohere calls, because all 8 chunks get re-processed. The changed chunk was one.
+
+This is not just expensive. It adds latency to the save-to-searchable cycle. If a student fixes an equation and immediately asks Apollo about it, there's a window where the old, incorrect version is what Apollo sees.
+
+### The Architecture
+
+Each chunk gets a `content_hash` at ingestion time. On re-ingestion, we compute hashes for the new chunks and diff them against stored hashes. Only changed chunks get re-embedded.
+
+This is Merkle-style diffing at the chunk level. A full parent tree (document → section → chunk) would add complexity for little gain at Avenire's current content hierarchy. The chunk level is the right granularity.
+
+```
+Note save
+  │
+  ├─ 1. Extract plain text from Tiptap JSON
+  ├─ 2. Chunk (same deterministic strategy as original)
+  ├─ 3. Hash each chunk
+  ├─ 4. Load existing hashes from DB
+  ├─ 5. Diff:
+  │     New hash, not in DB        → INSERT, embed
+  │     Same hash, same position   → no-op
+  │     Same hash, different pos   → UPDATE position only (no re-embed)
+  │     Old hash, no longer exists → DELETE
+  └─ 6. Re-embed only dirty chunks (→ cache → Cohere fallback)
+```
+
+<DiffVisualizer
+  description="See how chunk-level dirty tracking decides what to re-embed when a note is edited."
+  scenario="single-sentence-edit"
+/>
+
+### The Diff Algorithm
+
+```typescript
+function diffChunks(stored: StoredChunk[], incoming: NewChunk[]): DiffResult {
+  const storedByHash = new Map(stored.map(c => [c.contentHash, c]));
+  const incomingByHash = new Map(incoming.map(c => [c.hash, c]));
+
+  const toInsert: NewChunk[] = [];
+  const toUpdate: Array<{ id: string; newIndex: number }> = [];
+  const toDelete: string[] = [];
+  const unchanged: Array<{ id: string; chunk: NewChunk }> = [];
+
+  for (const chunk of incoming) {
+    const existing = storedByHash.get(chunk.hash);
+    if (!existing) {
+      toInsert.push(chunk);                              // new content
+    } else if (existing.chunkIndex !== chunk.index) {
+      toUpdate.push({ id: existing.id, newIndex: chunk.index }); // position shifted
+      unchanged.push({ id: existing.id, chunk });
+    } else {
+      unchanged.push({ id: existing.id, chunk });        // identical
+    }
+  }
+
+  for (const storedChunk of stored) {
+    if (!incomingByHash.has(storedChunk.contentHash)) {
+      toDelete.push(storedChunk.id);                    // removed
+    }
+  }
+
+  return { toInsert, toUpdate, toDelete, unchanged };
+}
+```
+
+Position-only changes (a student inserted a paragraph at the top, shifting all subsequent chunk indices) don't trigger re-embedding. The content is the same — only the `chunk_index` column gets updated.
+
+### The Tiptap Integration
+
+The re-ingestion job is wired into the note save API route with a 3-second debounce via BullMQ's `jobId` deduplication:
+
+```typescript
+await reingestQueue.add(
+  `reingest:${params.id}`,
+  { noteId: params.id, userId, content },
+  {
+    jobId: `reingest:${params.id}`,  // same jobId = deduplication
+    delay: 3000,
+    removeOnComplete: true,
+  }
+);
+```
+
+If a student saves 5 times in 3 seconds, one re-ingestion job runs — for the latest content. The raw Tiptap doc is saved immediately (instant to the user). The embedding update runs asynchronously and arrives in Apollo's context within a few seconds.
+
+**One edge case worth flagging:** if a student inserts a paragraph near the top of a long note, every subsequent chunk shifts position. The diff will see most of those as "position changed" — updating `chunk_index` but not re-embedding. Content that genuinely changed gets re-embedded. Content that moved but didn't change doesn't. The interaction with Feature B means that even re-embeddings are often free: if a student edits a sentence back to what it was, the cache hits and Cohere is never called.
+
+---
+
+## How They Compose
+
+Features B and C were designed to interact:
+
+- Feature C identifies which chunks actually changed
+- Feature B checks the cache before calling Cohere for each of those chunks
+- The cache hit rate for "dirty" chunks is often high — edit-revert patterns mean the same text returns frequently
+
+Feature A is fully independent. It operates on a different code path (SQL search vs vector search), uses a different index, and has no interaction with B or C.
+
+The rollout order reflects this: A first (low risk, immediate user-facing value), then B (shared infra), then C (builds on B being stable).
+
+---
+
+## Acceptance Criteria
+
+Rather than vague "it should be faster," each feature ships against concrete, checkable criteria.
+
+**Feature A:**
+- `ILIKE '%sin²θ%'` over 100k chunks returns in < 100ms (verify with `EXPLAIN ANALYZE`)
+- Apollo routes formula queries to `trigram_search` in > 80% of manual test cases
+- No regression in existing semantic/BM25 latency
+
+**Feature B:**
+- Cache hit rate > 70% for shared documents within 2 weeks of rollout
+- Ingestion time for a cached 300-chunk document < 1s
+- Zero cross-user data leakage (confirmed via audit query above)
+
+**Feature C:**
+- Single-sentence edit on a 10-chunk note triggers exactly 1 Cohere call (or 0 if cache hits)
+- Unchanged chunks account for > 85% of total on typical saves
+- Semantic search reflects note edits within 5s of save
+
+---
+
+## What This Actually Changes
+
+The thing these three features share: they make Apollo's search feel precise rather than probabilistic.
+
+When a student asks *"where did I write about Gauss's law"* — and they want the actual formula they derived, not a semantic approximation of the concept — that's Feature A. When a shared textbook ingests in 200ms instead of 30 seconds, that's Feature B. When Apollo sees a corrected equation within seconds of the student fixing it, not minutes, that's Feature C.
+
+None of these are the fun parts of building. They're infrastructure. But they're the reason the fun parts actually work.
+
+---
+
+*Avenire is a personal learning infrastructure for students who think in systems. If you're preparing for JEE and want early access, reach out.*
