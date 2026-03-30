@@ -1,8 +1,33 @@
-import { createRootRoute, Outlet, ScrollRestoration, Link } from '@tanstack/react-router'
+import { createRootRoute, Outlet, Link } from '@tanstack/react-router'
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Calendar } from 'lucide-react'
 import 'katex/dist/katex.min.css'
+
+const katexFonts = `
+/* Override KaTeX default fonts to load from CDN with font-display: swap */
+@font-face { font-family: 'KaTeX_Main'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-main-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Main'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-main-bold.woff2') format('woff2'); font-weight: bold; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Main'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-main-italic.woff2') format('woff2'); font-weight: normal; font-style: italic; font-display: swap; }
+@font-face { font-family: 'KaTeX_Main'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-main-bolditalic.woff2') format('woff2'); font-weight: bold; font-style: italic; font-display: swap; }
+@font-face { font-family: 'KaTeX_Math'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-math-italic.woff2') format('woff2'); font-weight: normal; font-style: italic; font-display: swap; }
+@font-face { font-family: 'KaTeX_Math'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-math-bold-italic.woff2') format('woff2'); font-weight: bold; font-style: italic; font-display: swap; }
+@font-face { font-family: 'KaTeX_Size1'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-size1-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Size2'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-size2-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Size3'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-size3-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Size4'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-size4-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Caligraphic'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-caligraphic-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Caligraphic'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-caligraphic-bold.woff2') format('woff2'); font-weight: bold; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Fraktur'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-fraktur-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Fraktur'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-fraktur-bold.woff2') format('woff2'); font-weight: bold; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_SansSerif'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-sansserif-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_SansSerif'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-sansserif-bold.woff2') format('woff2'); font-weight: bold; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_SansSerif'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-sansserif-italic.woff2') format('woff2'); font-weight: normal; font-style: italic; font-display: swap; }
+@font-face { font-family: 'KaTeX_SansSerif'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-sansserif-bolditalic.woff2') format('woff2'); font-weight: bold; font-style: italic; font-display: swap; }
+@font-face { font-family: 'KaTeX_Script'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-script-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Script'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-script-bold.woff2') format('woff2'); font-weight: bold; font-style: normal; font-display: swap; }
+@font-face { font-family: 'KaTeX_Typewriter'; src: url('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/katex-typewriter-regular.woff2') format('woff2'); font-weight: normal; font-style: normal; font-display: swap; }
+`
 import { CursorTrail } from '../components/portfolio-motion'
 import { ThemeContext } from '../context/theme'
 import { smoothEase } from '../components/motion-utils'
@@ -94,8 +119,8 @@ export const Route = createRootRoute({
   notFoundComponent: NotFoundComponent,
   component: () => (
     <ThemeProvider>
-      <ScrollRestoration />
       <CursorTrail />
+      <style>{katexFonts}</style>
       <div className="min-h-screen selection:bg-app-accent/30 selection:text-brand max-w-2xl mx-auto px-6 dashed-v-container relative isolate">
         <div className="grain-overlay" />
         <div className="relative z-10">

@@ -1,47 +1,10 @@
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import './index.css'
-import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { routeTree } from './routeTree.gen'
+import { RouterProvider } from '@tanstack/react-router'
+import { createAppRouter } from './router'
 
-function getViewTransitionTypes({
-  fromLocation,
-  toLocation,
-  pathChanged,
-  hashChanged,
-}: {
-  fromLocation?: { state: { __TSR_index?: number } }
-  toLocation: { state: { __TSR_index?: number } }
-  pathChanged: boolean
-  hashChanged: boolean
-}) {
-  if (!pathChanged || hashChanged || !fromLocation) {
-    return false
-  }
-
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    return false
-  }
-
-  const fromIndex = fromLocation.state.__TSR_index ?? 0
-  const toIndex = toLocation.state.__TSR_index ?? 0
-
-  if (fromIndex === toIndex) {
-    return false
-  }
-
-  return [fromIndex < toIndex ? 'route-forward' : 'route-back']
-}
-
-// Create a new router instance
-const router = createRouter({
-  routeTree,
-  defaultPreload: 'intent',
-  scrollRestoration: true,
-  defaultViewTransition: {
-    types: getViewTransitionTypes,
-  },
-})
+const router = createAppRouter()
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {
@@ -50,8 +13,15 @@ declare module '@tanstack/react-router' {
   }
 }
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')!
+const app = (
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>,
+  </StrictMode>
 )
+
+if (rootElement.hasChildNodes()) {
+  hydrateRoot(rootElement, app)
+} else {
+  createRoot(rootElement).render(app)
+}

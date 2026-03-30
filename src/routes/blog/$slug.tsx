@@ -4,7 +4,7 @@ import { MDXProvider } from '@mdx-js/react'
 import { MermaidDiagram } from '../../components/mdx/MermaidDiagram'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
-type BlogFrontmatter = { title?: string; date?: string; tags?: string[] }
+type BlogFrontmatter = { title?: string; date?: string; tags?: string[]; description?: string }
 type BlogModule = { default: React.ComponentType; frontmatter?: BlogFrontmatter }
 
 const mdxModules = import.meta.glob('../../content/blog/*.mdx', { eager: true }) as Record<string, BlogModule>
@@ -20,6 +20,38 @@ function findBlogBySlug(slug: string) {
 }
 
 const mdxComponents = {
+  table: ({ children, ...props }: ComponentPropsWithoutRef<'table'>) => (
+    <div className="overflow-x-auto my-6">
+      <table className="min-w-full divide-y divide-app-border" {...props}>
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children, ...props }: ComponentPropsWithoutRef<'thead'>) => (
+    <thead className="bg-app-surface-2" {...props}>
+      {children}
+    </thead>
+  ),
+  tbody: ({ children, ...props }: ComponentPropsWithoutRef<'tbody'>) => (
+    <tbody className="divide-y divide-app-border bg-app-surface" {...props}>
+      {children}
+    </tbody>
+  ),
+  tr: ({ children, ...props }: ComponentPropsWithoutRef<'tr'>) => (
+    <tr {...props}>
+      {children}
+    </tr>
+  ),
+  th: ({ children, ...props }: ComponentPropsWithoutRef<'th'>) => (
+    <th className="px-4 py-3 text-left text-xs font-medium text-app-heading uppercase tracking-wider" {...props}>
+      {children}
+    </th>
+  ),
+  td: ({ children, ...props }: ComponentPropsWithoutRef<'td'>) => (
+    <td className="px-4 py-3 text-sm text-app-text" {...props}>
+      {children}
+    </td>
+  ),
   // rehype-pretty-code wraps the whole thing in a figure
   figure: ({ children, ...props }: ComponentPropsWithoutRef<'figure'> & { 'data-rehype-pretty-code-figure'?: unknown }) => {
     if ('data-rehype-pretty-code-figure' in props) {
@@ -73,15 +105,19 @@ export const Route = createFileRoute('/blog/$slug')({
     const data = (loaderData || {}) as BlogFrontmatter
     const title = data?.title || 'Blog Post'
     const tags = data?.tags || []
+    const description = data?.description || `Read ${title} by Abhiram.`
     const ogImageUrl = `/api/og?title=${encodeURIComponent(title)}&tags=${encodeURIComponent(tags.join(','))}`
     return {
       meta: [
         { title: `${title} | Abhiram` },
+        { name: 'description', content: description },
         { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
         { property: 'og:image', content: ogImageUrl },
         { property: 'og:type', content: 'article' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: ogImageUrl },
       ],
     }

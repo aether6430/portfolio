@@ -1,0 +1,309 @@
+---
+title: "The Algorithm That Never Forgets"
+description: "A deep dive into the spaced repetition engine powering Avenire's memory infrastructure — from the mathematics of forgetting to a living, closed-loop study system."
+author: "Abhiram"
+date: "2026-03-29"
+tags: ["engineering", "memory", "spaced-repetition", "learning-science"]
+readingTime: "15 min"
+---
+
+import { ForgettingCurveSimulator } from "@/components/blog/ForgettingCurveSimulator"
+import { IntervalCalculator } from "@/components/blog/IntervalCalculator"
+import { ReviewSimulator } from "@/components/blog/ReviewSimulator"
+import { RetentionTradeoff } from "@/components/blog/RetentionTradeoff"
+
+Every student has experienced it. You studied something thoroughly, felt confident, walked away. Two weeks later it's gone — not fuzzy, but truly absent.
+
+The forgetting curve isn't a metaphor. It's a mathematical reality, understood for over a century. What's changed is our ability to fight it algorithmically.
+
+Avenire is built on a simple thesis: **intelligence without memory is performance without foundation.** You can have the best tutor, the best explanations, the best problem sets — and still fail because knowledge erodes between sessions. So we built our spaced repetition system not as a bolted-on flashcard feature, but as the core scheduling layer of the entire platform.
+
+This post is about how it works at a mathematical level, and how we've wired it into Avenire's study infrastructure.
+
+---
+
+## 01 — The Forgetting Curve & Why Old Algorithms Weren't Enough
+
+Hermann Ebbinghaus mapped the forgetting curve in 1885. After learning something, retention decays exponentially unless reinforced:
+
+```
+R(t) = e^(−t / S)
+
+where  R = retrievability (0–1)
+       t = elapsed time since last review
+       S = memory stability
+```
+
+The key insight: **stability S is not fixed.** Each successful recall increases it — this is the spacing effect. Recall something just before you forget it, and the memory encodes more deeply. This is the theoretical foundation of all spaced repetition.
+
+The first generation of spaced repetition software (most famously, SM-2, which powers Anki) operationalizes this. But it has documented problems: fixed interval growth formulas that don't adapt well to different memory strengths, no principled model of forgetting probability, and a conflation of "hard right now" with "hard forever."
+
+Avenire uses a modern spaced repetition algorithm that solves these problems with a proper psychological memory model — backed by data from millions of reviews, with learnable parameters fit via gradient descent.
+
+<ForgettingCurveSimulator />
+
+> The goal is not to study more. It is to study at exactly the right moment — and never a moment too soon or too late.
+
+---
+
+## 02 — The Memory Model: Stability & Difficulty
+
+The algorithm models memory with two core state variables per card, updated after every review:
+
+| Variable | Range | Description |
+|----------|-------|-------------|
+| **S** (Stability) | $0 \to \infty$ days | How many days until retrievability decays to your target threshold (default: 90%). Higher S → longer intervals. |
+| **D** (Difficulty) | 1 → 10 | An intrinsic property of the card. Affects how much stability grows after a successful recall. |
+
+### The Retrievability Formula
+
+Given stability `S` and elapsed time `t` (in days), retrievability is computed using a **power-law decay** — not purely exponential, which better captures how human memory actually behaves:
+
+$$R(t, S) = \left(1 + \frac{\text{FACTOR} \cdot t}{S}\right)^{1/\text{DECAY}}$$
+
+Where $\text{DECAY} = -0.5$ and $\text{FACTOR} = 19/81 \approx 0.2346$.
+
+The interval for a review is the $t$ at which $R(t, S)$ equals your target retention. For a 90% retention target, this simplifies to:
+
+$$I \approx S \times 9$$
+
+In plain terms: **the interval is roughly $9\times$ the stability.** A card with $S=5$ days is next reviewed in ~45 days.
+
+<IntervalCalculator />
+
+### The Rating System
+
+After each review, the user rates recall on a 1–4 scale. This directly drives how stability and difficulty update:
+
+| Rating | Label | Meaning |
+|--------|-------|---------|
+| 1 | **Again** | Complete blackout. Card resets to early state. |
+| 2 | **Hard** | Significant difficulty. Recall succeeded but felt labored. |
+| 3 | **Good** | Correct recall with normal effort. The standard outcome. |
+| 4 | **Easy** | Instant recall. Stability grows more aggressively. |
+
+### Stability Updates
+
+After a **successful** recall (ratings 2, 3, or 4), stability grows. After a **lapse** (rating 1), it resets — but not to zero. The card retains some residual stability, which is why re-learning something is always faster than learning it fresh.
+
+The growth is modulated by the card's difficulty: an easy card (D near 1) gains much more stability per review than a hard card (D near 10). This is the mechanism by which the algorithm naturally pushes easy cards to very long intervals and keeps hard cards on shorter leashes.
+
+### Difficulty Updates
+
+Difficulty is updated after every review to track whether this card is intrinsically harder or easier than average for this student. Crucially, difficulty **mean-reverts** toward the card's initial estimate. This prevents a single bad session from permanently damaging a card's difficulty score — the algorithm assumes most difficulty is situational.
+
+$$D' = D - w_6 \cdot (\text{rating} - 3)$$
+
+$$D' = D_0 \cdot \text{mean\_reversion} + D' \cdot (1 - \text{mean\_reversion})$$
+
+---
+
+## 03 — First Encounters: Seeding State for New Cards
+
+New cards have no history. Initial stability is estimated from the first recall rating:
+
+$$S_0(\text{Again}) \approx 0.4 \text{ days}$$
+$$S_0(\text{Hard}) \approx 1.3 \text{ days}$$
+$$S_0(\text{Good}) \approx 3.1 \text{ days}$$
+$$S_0(\text{Easy}) \approx 7.9 \text{ days}$$
+
+If you nail a card on the first try, your next review is about a week out. If you blank on it, it comes back tomorrow. Initial difficulty is estimated from the same first rating and gets refined with each subsequent review.
+
+<ReviewSimulator />
+
+---
+
+## 04 — How We Implement This in Avenire
+
+We use `ts-fsrs` as our scheduling core and layer Avenire-specific logic on top. Here's how data flows from a user rating to a database write.
+
+### The Card Schema
+
+Every flashcard carries its full scheduling state directly on the card row in PostgreSQL:
+
+```typescript
+export const flashcards = pgTable("flashcards", {
+  id:          uuid().primaryKey().defaultRandom(),
+  userId:      uuid().notNull(),
+  noteId:      uuid().references(() => notes.id),
+
+  // Card content (rich text / KaTeX)
+  front:       text().notNull(),
+  back:        text().notNull(),
+
+  // Scheduling state
+  stability:     real().notNull().default(0),
+  difficulty:    real().notNull().default(0),
+  elapsedDays:   integer().notNull().default(0),
+  scheduledDays: integer().notNull().default(0),
+  reps:          integer().notNull().default(0),
+  lapses:        integer().notNull().default(0),
+  state:         cardStateEnum().notNull().default("New"),
+  due:           timestamp().notNull().defaultNow(),
+  lastReview:    timestamp(),
+
+  createdAt:   timestamp().defaultNow(),
+});
+```
+
+### Scheduling a Review
+
+When a user rates a card, we call our `scheduleCard` service. A key detail: the scheduler returns **four candidates** — one per possible rating — so the UI can preview upcoming intervals before the user commits. This is what powers the interval preview labels under each rating button.
+
+```typescript
+import { fsrs, generatorParameters, Rating } from "ts-fsrs";
+
+const f = fsrs(generatorParameters({ enable_fuzz: true }));
+
+export async function scheduleCard(
+  card: FSRSCard,
+  rating: Rating,
+  now: Date = new Date()
+) {
+  const result = f.next(card, now, rating);
+
+  await db
+    .update(flashcards)
+    .set({
+      stability:     result.card.stability,
+      difficulty:    result.card.difficulty,
+      elapsedDays:   result.card.elapsed_days,
+      scheduledDays: result.card.scheduled_days,
+      reps:          result.card.reps,
+      lapses:        result.card.lapses,
+      state:         result.card.state,
+      due:           result.card.due,
+      lastReview:    now,
+    })
+    .where(eq(flashcards.id, card.id));
+
+  // Write to review_log for analytics + rollback capability
+  await db.insert(reviewLogs).values({
+    cardId:     card.id,
+    rating:     rating,
+    state:      result.card.state,
+    due:        result.card.due,
+    stability:  result.card.stability,
+    elapsed:    result.card.elapsed_days,
+    reviewedAt: now,
+  });
+
+  return result;
+}
+```
+
+### The Fuzz Factor
+
+Notice `enable_fuzz: true`. This adds a small random ±percentage jitter to computed intervals. Without it, all cards studied on the same day cluster at the same future due dates — creating "review avalanches." Fuzz smooths the distribution of due cards over time, essential for a sustainable daily review load.
+
+### Querying Due Cards
+
+```typescript
+const dueCards = await db
+  .select()
+  .from(flashcards)
+  .where(
+    and(
+      eq(flashcards.userId, userId),
+      lte(flashcards.due, new Date())
+    )
+  )
+  .orderBy(asc(flashcards.due));
+// Compound index on (userId, due) keeps this fast at scale
+```
+
+---
+
+## 05 — The RevisionCalendar: Making the Schedule Visible
+
+Raw scheduling data is just numbers. One of Avenire's core UX decisions was to make the review schedule *visible* — to turn the abstract concept of "spaced repetition" into something students can see and reason about.
+
+The **RevisionCalendar** component shows a heatmap-style calendar of due card counts per day. Students can see their upcoming workload and understand intuitively that the algorithm is distributing reviews over time, not dumping them all at once.
+
+```typescript
+// Aggregate due counts grouped by calendar day
+const dueCounts = await db
+  .select({
+    date:  sql`DATE(due)`.as("date"),
+    count: sql`COUNT(*)`.as("count"),
+  })
+  .from(flashcards)
+  .where(eq(flashcards.userId, userId))
+  .groupBy(sql`DATE(due)`)
+  .orderBy(asc(sql`DATE(due)`));
+```
+
+The calendar uses intensity buckets (0, 1–5, 6–15, 16–30, 30+) mapped to a color scale. High-load days prompt the student to either review some cards early or know in advance to schedule more study time.
+
+---
+
+## 06 — The Closed Loop: Memory ↔ Chat ↔ Knowledge
+
+Standalone flashcards are table stakes. Avenire's real bet is on the **Closed Learning Loop** — a system where the scheduler, the chat tutor, and Apollo (our RAG knowledge engine) are bidirectionally aware of each other.
+
+> A rating of "Again" isn't just a scheduling event. It's a signal that the student has a knowledge gap — and the system should act on it.
+
+| Event | System Response | Data Flow |
+|-------|----------------|-----------|
+| Card lapses (rating 1) | Misconception Engine flags concept as weak | Scheduler → Misconception Engine |
+| Deep Tutor explains concept | Apollo tags related cards as "reinforced" | Chat → Apollo → scheduling nudge |
+| Apollo retrieves a chunk for RAG | Cards linked to that chunk get soft boost | Apollo → scheduler context |
+| AI generates cards from a note | Cards inherit note's topic tags and source chunks | AI Generation → scheduler seed |
+
+The most powerful signal is the **lapse-to-tutor pipeline**. When a student repeatedly fails a card (lapses ≥ 2 within a session), Avenire surfaces a prompt: *"You've missed this concept a few times. Want to work through it with the tutor?"* The tutor picks up the exact concept, pulls relevant context from Apollo, and walks the student through it — after which a new, better-formed card can be generated and scheduled fresh.
+
+### AI-Powered Card Generation
+
+We use Claude Sonnet (via Batch API for cost efficiency) to generate flashcard pairs from note content. Each generated card inherits metadata from its source: the note ID, relevant Apollo chunk IDs, and topic tags. When the scheduler surfaces a card for review, the original source material can be surfaced inline — the student doesn't see a decontextualized question; they can tap into the original explanation.
+
+```typescript
+const prompt = `
+You are generating spaced repetition flashcards from study notes.
+For each key concept, produce a front/back pair.
+Prefer atomic cards — one fact per card.
+Use LaTeX for equations: $...$
+
+Format as JSON array:
+[{"front": "...", "back": "...", "tags": [...]}]
+
+Notes content:
+${noteContent}
+`;
+
+// Queue batch job via BullMQ
+await flashcardQueue.add("generate", {
+  noteId: note.id,
+  userId: note.userId,
+  prompt: prompt
+});
+```
+
+---
+
+## 07 — Tuning: Retention Targets & Per-User Optimization
+
+The most impactful knob is the **target retention**: the desired probability of recall at review time. The default is 90%, but there's a fundamental tradeoff between retention strength and daily review load.
+
+<RetentionTradeoff />
+
+For competitive exam prep, we default to 90%. Going to 95%+ dramatically increases daily review burden — which is self-defeating if it causes students to stop doing reviews altogether. 90% is the empirically-validated sweet spot for academic learning.
+
+### Per-User Parameter Optimization
+
+The algorithm's weights are pre-trained global defaults, but it supports **per-user optimization**: if a user has enough review history (typically 400+ reviews), gradient descent on their personal review log can produce custom weights that better fit their individual memory characteristics.
+
+This is on Avenire's roadmap. At current scale we use the global defaults, but as users accumulate review history we'll run nightly optimization jobs via BullMQ to compute personalized parameter sets. A student with unusually fast forgetting will get a scheduler calibrated to their curve; one with exceptional long-term retention will get longer intervals automatically.
+
+---
+
+## 08 — What We've Built and Where It Goes
+
+The version of this system in Avenire today is already a significant leap over basic flashcard apps: power-law retention modeling, fuzz-smoothed scheduling, a visual revision calendar, lapse-triggered tutoring, and AI-generated cards seeded with source context. The math runs quietly on every card in every student's deck.
+
+But the deeper ambition is the closed loop. Most study apps treat memory as a separate system from understanding. We think they're the same system. When scheduling data informs the tutor about what the student has forgotten, and the tutor's explanations feed back into better-formed cards with stronger initial stability estimates, you get a flywheel: **every study session makes the next one more efficient.**
+
+The algorithm never forgets. And over time, neither will you.
+
+---
+
+*Avenire is a student-focused AI study infrastructure platform. Built in Hyderabad.*

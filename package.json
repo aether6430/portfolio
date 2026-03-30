@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "node scripts/generate-og-pages.mjs",
+    "postbuild": "node scripts/generate-og-pages.mjs && node scripts/prerender.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

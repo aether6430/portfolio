@@ -8,6 +8,27 @@ import { heroCopy, profile, projects, skillGroups, socialLinks, type Project } f
 import { ThemeContext } from '../context/theme'
 
 export const Route = createFileRoute('/')({
+  head: () => ({
+    meta: [
+      { title: 'Abhiram | Student | Founder' },
+      {
+        name: 'description',
+        content: 'Portfolio, writing, and experiments from Abhiram across engineering, product, and search systems.',
+      },
+      { property: 'og:title', content: 'Abhiram | Student | Founder' },
+      {
+        property: 'og:description',
+        content: 'Portfolio, writing, and experiments from Abhiram across engineering, product, and search systems.',
+      },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: 'Abhiram | Student | Founder' },
+      {
+        name: 'twitter:description',
+        content: 'Portfolio, writing, and experiments from Abhiram across engineering, product, and search systems.',
+      },
+    ],
+  }),
   component: Index,
 })
 

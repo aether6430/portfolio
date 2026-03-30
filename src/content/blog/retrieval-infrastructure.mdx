@@ -42,7 +42,7 @@ This is a solid foundation. Dense + sparse retrieval together handle most concep
   ]}
 />
 
-**Gap A:** Neither semantic search nor BM25 can find `∂v/∂t` or `sin²θ` reliably. BM25 tokenises on whitespace and loses mathematical symbols. Semantic search returns topically similar chunks — not the ones with the actual notation. The only option was a full table scan, which doesn't scale past ~1,000 notes.
+**Gap A:** Neither semantic search nor BM25 can find $\frac{\partial v}{\partial t}$ or $\sin^2\theta$ reliably. BM25 tokenises on whitespace and loses mathematical symbols. Semantic search returns topically similar chunks — not the ones with the actual notation. The only option was a full table scan, which doesn't scale past ~1,000 notes.
 
 **Gap B:** Many students share source material — the same HC Verma chapter, NCERT PDF, DPP sheet. Every student who uploads the same document triggers a full Cohere embedding pass. At ~1,200 tokens per chunk across ~200 chunks per textbook, this adds 10–30 seconds of ingestion latency *and* costs real money, every time.
 
@@ -56,16 +56,16 @@ Three features. Three independent fixes. Let's go through each.
 
 ### The Problem
 
-Imagine you're reviewing for electricity and magnetism and you want to find every note where you worked through a specific formula derivation. You ask Apollo: *"Find everywhere I wrote `∫ E · dA`."*
+Imagine you're reviewing for electricity and magnetism and you want to find every note where you worked through a specific formula derivation. You ask Apollo: *"Find everywhere I wrote $\int E \cdot dA$."*
 
-Semantic search will return notes about Gauss's law, electric flux, closed surfaces. Useful, but not what you asked. BM25 won't even see the `∫` — it's not in its vocabulary. Neither gives you the line you remember writing.
+Semantic search will return notes about Gauss's law, electric flux, closed surfaces. Useful, but not what you asked. BM25 won't even see the $\int$ — it's not in its vocabulary. Neither gives you the line you remember writing.
 
 ### What pg_trgm Does
 
 PostgreSQL's `pg_trgm` extension splits every string into overlapping 3-character sequences (trigrams) and builds a GIN inverted index over them. When you search, it decomposes your query the same way and does a posting-list intersection to find candidates fast — then confirms on the actual text.
 
 <TrigramExplorer
-  defaultText="sin²θ + cos²θ = 1"
+  defaultText="\sin^2\theta + \cos^2\theta = 1"
   description="Type any formula or phrase to see how pg_trgm breaks it into trigrams for indexing."
 />
 
@@ -107,7 +107,7 @@ Apollo gets a new `trigram_search` tool alongside `semantic_search` and `bm25_se
 SELECT id, content, similarity(content, $1) AS score
 FROM chunks
 WHERE user_id = $2
-  AND content ILIKE $3   -- $3 = '%∫ E · dA%'
+  AND content ILIKE $3   -- $3 = '%\int E \cdot dA%'
 ORDER BY score DESC
 LIMIT 20;
 ```
@@ -116,7 +116,7 @@ LIMIT 20;
 ```sql
 SELECT id, content FROM chunks
 WHERE user_id = $1
-  AND content ~ $2    -- e.g. 'sin.{0,3}θ'
+  AND content ~ $2    -- e.g. 'sin.{0,3}\\theta'
 LIMIT 20;
 ```
 
@@ -130,11 +130,11 @@ ORDER BY sim DESC
 LIMIT 10;
 ```
 
-Apollo's routing planner decides which mode to use based on the query shape. If it detects mathematical symbols (`∂`, `∑`, `∫`, `θ`, `²`), quoted phrases, or explicit "find where I wrote" intent, it routes to `trigram_search`. Otherwise, semantic search handles it.
+Apollo's routing planner decides which mode to use based on the query shape. If it detects mathematical symbols ($\partial$, $\sum$, $\int$, $\theta$, squared), quoted phrases, or explicit "find where I wrote" intent, it routes to `trigram_search`. Otherwise, semantic search handles it.
 
 **Performance:** On a GIN-indexed column, `ILIKE '%pattern%'` over 1M rows typically returns in 10–50ms. Without the index: 2–10 seconds. The index is most effective for patterns 4+ characters long.
 
-One honest limitation: OCR'd PDFs may have inconsistent encoding for math symbols. A note you typed might have `∂` (U+2202) while a scanned PDF has the ASCII approximation `d`. Trigram search works best on text the student wrote themselves.
+One honest limitation: OCR'd PDFs may have inconsistent encoding for math symbols. A note you typed might have $\partial$ (U+2202) while a scanned PDF has the ASCII approximation `d`. Trigram search works best on text the student wrote themselves.
 
 ---
 
@@ -370,7 +370,7 @@ The rollout order reflects this: A first (low risk, immediate user-facing value)
 Rather than vague "it should be faster," each feature ships against concrete, checkable criteria.
 
 **Feature A:**
-- `ILIKE '%sin²θ%'` over 100k chunks returns in < 100ms (verify with `EXPLAIN ANALYZE`)
+- `ILIKE '%\sin^2\theta%'` over 100k chunks returns in < 100ms (verify with `EXPLAIN ANALYZE`)
 - Apollo routes formula queries to `trigram_search` in > 80% of manual test cases
 - No regression in existing semantic/BM25 latency
 

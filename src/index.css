@@ -383,6 +383,10 @@ figure[data-rehype-pretty-code-figure] {
   --tw-prose-pre-bg: var(--color-app-surface-2);
   --tw-prose-th-borders: var(--color-app-border);
   --tw-prose-td-borders: var(--color-app-border);
+  --tw-prose-table-border: var(--color-app-border);
+  --tw-prose-table-head-bg: var(--color-app-surface-2);
+  --tw-prose-table-row-bg: var(--color-app-surface);
+  --tw-prose-table-row-odd-bg: var(--color-app-surface);
 }
 
 figure[data-rehype-pretty-code-figure] code {
