@@ -4,6 +4,7 @@ import './index.css'
 import { RouterProvider } from '@tanstack/react-router'
 import { createAppRouter } from './router'
 import { inject } from '@vercel/analytics'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 inject()
 
@@ -20,6 +21,7 @@ const rootElement = document.getElementById('root')!
 const app = (
   <StrictMode>
     <RouterProvider router={router} />
+    <SpeedInsights />
   </StrictMode>
 )
 
