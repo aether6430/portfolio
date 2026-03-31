@@ -3,6 +3,9 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 import './index.css'
 import { RouterProvider } from '@tanstack/react-router'
 import { createAppRouter } from './router'
+import { inject } from '@vercel/analytics'
+
+inject()
 
 const router = createAppRouter()
 
