@@ -17,6 +17,7 @@ import tailwindcss from '@tailwindcss/vite';
 import mdx from '@mdx-js/rollup';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
+import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypePrettyCode from 'rehype-pretty-code';
@@ -32,6 +33,7 @@ export default defineConfig({
             remarkPlugins: [
                 remarkFrontmatter,
                 remarkMdxFrontmatter,
+                remarkGfm,
                 remarkMath
             ],
             rehypePlugins: [

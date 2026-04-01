@@ -9,9 +9,27 @@ type BlogFrontmatter = { title?: string; date?: string; tags?: string[]; descrip
 type BlogModule = { default: React.ComponentType; frontmatter?: BlogFrontmatter }
 
 const katexFonts = `
-/* Override KaTeX fonts to use monospace */
-.katex { font-family: ui-monospace, 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'SF Mono', Consolas, monospace !important; }
-.katex * { font-family: ui-monospace, 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'SF Mono', Consolas, monospace !important; }
+/* Match KaTeX to blog's monospace typography */
+.katex {
+  font-family: var(--font-mono) !important;
+  font-weight: inherit !important;
+  font-size: 1em !important;
+  line-height: inherit !important;
+  color: inherit !important;
+}
+.katex * {
+  font-family: var(--font-mono) !important;
+  font-weight: inherit !important;
+}
+.katex .mord,
+.katex .mbin,
+.katex .mrel,
+.katex .mopen,
+.katex .mclose,
+.katex .mpunct,
+.katex .minner {
+  font-weight: inherit !important;
+}
 `
 
 const mdxModules = import.meta.glob('../../content/blog/*.mdx') as Record<string, () => Promise<BlogModule>>
