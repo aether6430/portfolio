@@ -8,11 +8,6 @@ import { getRecentBlogs } from '../content/blog-metadata'
 import { heroCopy, profile, projects, skillGroups, socialLinks, type Project } from '../content/portfolio'
 import { ThemeContext } from '../context/theme'
 
-const showAvenireDownToast = async () => {
-  const { toast } = await import('sonner')
-  toast.error('Avenire is currently down. We are working on it.')
-}
-
 export const Route = createFileRoute('/')({
   head: () => ({
     meta: [
@@ -133,10 +128,6 @@ function Index() {
             </motion.p>
             <motion.a
               href={heroCopy.liveUrl}
-              onClick={(event) => {
-                event.preventDefault()
-                showAvenireDownToast()
-              }}
               className="inline-flex w-fit items-center gap-2 text-xs uppercase tracking-[0.22em] text-app-text-muted hover:text-app-heading transition-colors"
               variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: smoothEase } } }}
             >
@@ -452,10 +443,6 @@ function ProjectModal({ project, onClose }: { project: Project, onClose: () => v
                 </div>
                 <a
                   href={project.liveUrl}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    showAvenireDownToast()
-                  }}
                   className="inline-flex w-fit items-center gap-2 text-xs uppercase tracking-[0.22em] text-app-text-muted hover:text-app-heading transition-colors"
                 >
                   Open preview <span aria-hidden="true">↗</span>
